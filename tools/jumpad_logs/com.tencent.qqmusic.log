@@ -1,0 +1,21 @@
+--------- beginning of main
+08-21 19:27:48.004 23059 23059 D JumpAd  : 进入启动页阶段: pkg=com.tencent.qqmusic, activity=com.tencent.qqmusic.activity.AppStarterActivity
+08-21 19:27:48.227 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.tencent.qqmusic, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:27:48.261 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.tencent.qqmusic, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:27:48.313 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.tencent.qqmusic, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:27:48.415 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.tencent.qqmusic, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:27:49.836 23059 23059 D JumpAd  : 命中李跳跳规则锚点: id=更新 -> action=取消
+08-21 19:27:50.053 23059 23059 D JumpAd  : 未找到 action 目标节点: action=取消
+08-21 19:27:50.069 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.tencent.qqmusic, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:27:51.861 23059 23059 D JumpAd  : 命中李跳跳规则锚点: id=更新 -> action=取消
+08-21 19:27:51.863 23059 23059 D JumpAd  : 未找到 action 目标节点: action=取消
+08-21 19:27:51.877 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.tencent.qqmusic, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:27:53.016 23059 23059 D JumpAd  : 命中李跳跳规则锚点: id=更新 -> action=取消
+08-21 19:27:53.018 23059 23059 D JumpAd  : 未找到 action 目标节点: action=取消
+08-21 19:27:53.031 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.tencent.qqmusic, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:27:53.926 23059 23059 D JumpAd  : 命中李跳跳规则锚点: id=更新 -> action=取消
+08-21 19:27:53.930 23059 23059 D JumpAd  : 未找到 action 目标节点: action=取消
+08-21 19:27:53.968 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.tencent.qqmusic, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:27:54.371 23059 23059 D JumpAd  : 命中李跳跳规则锚点: id=更新 -> action=取消
+08-21 19:27:54.373 23059 23059 D JumpAd  : 未找到 action 目标节点: action=取消
+08-21 19:27:54.391 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.tencent.qqmusic, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]

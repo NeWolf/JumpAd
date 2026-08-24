@@ -1,0 +1,4 @@
+--------- beginning of main
+08-21 19:32:20.340 17513 17513 I JumpAd  : 扫描窗口超时未匹配到跳过按钮,记录待适配: pkg=com.miui.home, activity=com.miui.home.launcher.Launcher
+08-21 19:32:20.340 17513 17513 D JumpAd  : 结束扫描窗口: pkg=com.miui.home, activity=com.miui.home.launcher.Launcher
+08-21 19:32:21.020 17513 17513 D JumpAd  : 忽略非 Activity 事件: pkg=com.android.systemui, class=android.widget.FrameLayout

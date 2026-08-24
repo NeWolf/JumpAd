@@ -1,0 +1,4 @@
+--------- beginning of main
+08-21 19:26:11.278 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.zhaopin.social, class=android.widget.FrameLayout
+08-21 19:26:11.443 23059 23059 D JumpAd  : 非启动页,停止扫描: pkg=com.zhaopin.social, activity=com.zhaopin.social.boot.launch.privacy.ui.activity.PrivacyActivity, launcher=com.zhaopin.social.SplashActivity
+08-21 19:26:11.663 23059 23059 D JumpAd  : 非启动页,停止扫描: pkg=com.zhaopin.social, activity=com.zhaopin.social.SplashActivity, launcher=com.zhaopin.social.SplashActivity

@@ -1,0 +1,5 @@
+--------- beginning of main
+08-21 19:26:22.043 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.job.android, class=android.widget.FrameLayout
+08-21 19:26:22.930 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.job.android, class=com.jobs.widget.dialog.confirm.CommonConfirmDialog
+08-21 19:26:23.067 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.android.permissioncontroller, class=miuix.appcompat.app.AlertDialog
+08-21 19:26:23.531 23059 23059 D JumpAd  : 非启动页,停止扫描: pkg=com.android.permissioncontroller, activity=com.android.permissioncontroller.permission.ui.GrantPermissionsActivity, launcher=null

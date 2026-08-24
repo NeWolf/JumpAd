@@ -1,0 +1,22 @@
+--------- beginning of main
+08-21 19:24:45.903 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.smile.gifmaker, class=android.widget.FrameLayout
+08-21 19:24:46.040 23059 23059 D JumpAd  : 进入启动页阶段: pkg=com.smile.gifmaker, activity=com.yxcorp.gifshow.HomeActivity
+08-21 19:24:46.054 23059 23059 D JumpAd  : 命中李跳跳规则锚点: id=view_pager -> action=iv_close
+08-21 19:24:46.055 23059 23059 D JumpAd  : 未找到 action 目标节点: action=iv_close
+08-21 19:24:46.059 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.smile.gifmaker, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:24:46.165 23059 23059 D JumpAd  : 命中李跳跳规则锚点: id=继续 -> action=继续
+08-21 19:24:46.181 23059 23059 D JumpAd  : 点击目标成功: action=继续
+08-21 19:24:46.186 23059 23059 I JumpAd  : 已按李跳跳规则跳过广告: pkg=com.smile.gifmaker, id=继续, action=继续
+08-21 19:24:48.209 23059 23059 D JumpAd  : 命中李跳跳规则锚点: id=view_pager -> action=iv_close
+08-21 19:24:48.211 23059 23059 D JumpAd  : 未找到 action 目标节点: action=iv_close
+08-21 19:24:48.221 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.smile.gifmaker, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:24:48.987 23059 23059 D JumpAd  : 命中李跳跳规则锚点: id=view_pager -> action=iv_close
+08-21 19:24:48.990 23059 23059 D JumpAd  : 未找到 action 目标节点: action=iv_close
+08-21 19:24:49.001 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.smile.gifmaker, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:24:49.014 23059 23059 D JumpAd  : 命中李跳跳规则锚点: id=close -> action=close
+08-21 19:24:49.035 23059 23059 D JumpAd  : 点击目标成功: action=close
+08-21 19:24:49.048 23059 23059 I JumpAd  : 已按李跳跳规则跳过广告: pkg=com.smile.gifmaker, id=close, action=close
+08-21 19:24:49.062 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.smile.gifmaker, class=android.widget.FrameLayout
+08-21 19:24:49.452 23059 23059 D JumpAd  : 非启动页,停止扫描: pkg=com.miui.home, activity=com.miui.home.launcher.Launcher, launcher=null
+08-21 19:24:49.947 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.android.quicksearchbox, class=android.widget.FrameLayout
+08-21 19:24:50.602 23059 23059 D JumpAd  : 非启动页,停止扫描: pkg=com.miui.home, activity=com.miui.home.launcher.Launcher, launcher=null

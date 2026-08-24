@@ -1,0 +1,3 @@
+--------- beginning of main
+08-21 19:24:03.073 23059 23059 D JumpAd  : 非启动页,停止扫描: pkg=com.dianping.v1, activity=com.dianping.mainapplication.PrivacyActivity, launcher=com.dianping.v1.NovaMainActivity
+08-21 19:24:03.335 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.dianping.v1, class=android.widget.FrameLayout

@@ -1,0 +1,3 @@
+--------- beginning of main
+08-21 19:25:17.888 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.baidu.searchbox, class=android.widget.FrameLayout
+08-21 19:25:18.035 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.baidu.searchbox, class=com.baidu.android.ext.widget.dialog.FirstWarmTipsDialog

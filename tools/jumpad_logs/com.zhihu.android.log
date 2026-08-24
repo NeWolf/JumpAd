@@ -1,0 +1,5 @@
+--------- beginning of main
+08-21 19:24:24.665 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.zhihu.android, class=android.widget.FrameLayout
+08-21 19:24:25.057 23059 23059 D JumpAd  : 非启动页,停止扫描: pkg=com.zhihu.android, activity=com.zhihu.android.app.ui.activity.MainActivity, launcher=com.zhihu.android.app.ui.activity.LauncherActivity
+08-21 19:24:25.195 23059 23059 D JumpAd  : 非启动页,停止扫描: pkg=com.zhihu.android, activity=com.zhihu.android.app.ui.activity.MainActivity, launcher=com.zhihu.android.app.ui.activity.LauncherActivity
+08-21 19:24:25.545 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.zhihu.android, class=com.zhihu.android.growth.newuser.privacy.b

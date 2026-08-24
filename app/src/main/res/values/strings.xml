@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">JumpAd</string>
+    <string name="accessibility_service_label">JumpAd 跳过开屏广告</string>
+    <string name="accessibility_service_description">开启后自动识别并点击开屏广告的“跳过”按钮,帮助你快速跳过开屏广告。本服务仅在本地运行,不联网、不上传任何数据。</string>
+</resources>

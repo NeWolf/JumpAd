@@ -1,0 +1,10 @@
+--------- beginning of main
+08-21 19:26:32.783 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.lietou.mishu, class=android.widget.FrameLayout
+08-21 19:26:33.155 23059 23059 D JumpAd  : 进入启动页阶段: pkg=com.lietou.mishu, activity=com.lietou.mishu.HomeActivity
+08-21 19:26:33.161 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.lietou.mishu, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:26:34.216 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.lietou.mishu, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:26:34.241 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.lietou.mishu, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:26:34.365 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.lietou.mishu, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:26:37.469 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.lietou.mishu, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:26:37.487 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.lietou.mishu, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:26:37.633 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.lietou.mishu, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]

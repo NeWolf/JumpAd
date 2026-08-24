@@ -1,0 +1,9 @@
+--------- beginning of main
+08-21 19:27:37.040 23059 23059 D JumpAd  : 进入启动页阶段: pkg=com.xiaomi.shop, activity=com.xiaomi.shop.activity.MainTabActivity
+08-21 19:27:37.049 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.xiaomi.shop, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:27:37.151 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.xiaomi.shop, class=android.widget.FrameLayout
+08-21 19:27:37.157 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.xiaomi.shop, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:27:37.666 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.xiaomi.shop, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:27:37.864 23059 23059 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.xiaomi.shop, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:27:37.878 23059 23059 I JumpAd  : 已跳过广告(关键词): pkg=com.xiaomi.shop
+08-21 19:27:38.082 23059 23059 D JumpAd  : 非启动页,停止扫描: pkg=com.xiaomi.shop, activity=com.xiaomi.shop2.activity.MainActivity, launcher=com.xiaomi.shop.activity.MainTabActivity

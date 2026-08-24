@@ -1,0 +1,4 @@
+--------- beginning of main
+08-21 19:26:43.594 23059 23059 D JumpAd  : 忽略非 Activity 事件: pkg=com.anjuke.android.app, class=android.widget.FrameLayout
+08-21 19:26:43.859 23059 23059 D JumpAd  : 非启动页,停止扫描: pkg=com.anjuke.android.app, activity=com.anjuke.android.app.mainmodule.common.activity.MainTabPageActivityV5, launcher=com.anjuke.android.app.mainmodule.WelcomeActivity
+08-21 19:26:44.042 23059 23059 D JumpAd  : 非启动页,停止扫描: pkg=com.anjuke.android.app, activity=com.anjuke.android.app.mainmodule.WelcomeActivity, launcher=com.anjuke.android.app.mainmodule.WelcomeActivity

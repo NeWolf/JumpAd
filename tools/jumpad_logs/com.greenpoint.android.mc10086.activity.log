@@ -1,0 +1,9 @@
+--------- beginning of main
+08-21 19:32:04.624 17513 17513 I JumpAd  : 扫描窗口超时未匹配到跳过按钮,记录待适配: pkg=com.miui.home, activity=com.miui.home.launcher.Launcher
+08-21 19:32:04.624 17513 17513 D JumpAd  : 结束扫描窗口: pkg=com.miui.home, activity=com.miui.home.launcher.Launcher
+08-21 19:32:05.064 17513 17513 D JumpAd  : 忽略非 Activity 事件: pkg=com.greenpoint.android.mc10086.activity, class=android.widget.FrameLayout
+08-21 19:32:05.618 17513 17513 D JumpAd  : 开启启动页扫描窗口: pkg=com.greenpoint.android.mc10086.activity, activity=com.mc10086.cmcc.view.tabs.AppTabFragment
+08-21 19:32:06.457 17513 17513 D JumpAd  : 命中李跳跳规则锚点: id=viewpager -> action=iv_home_delete
+08-21 19:32:06.459 17513 17513 D JumpAd  : 未找到 action 目标节点: action=iv_home_delete
+08-21 19:32:06.467 17513 17513 D JumpAd  : 李跳跳规则未命中,回退关键词匹配: pkg=com.greenpoint.android.mc10086.activity, keywords=[跳过, 跳过广告, 跳过 广告, 点击跳过, 跳过 >, 关闭广告, Skip, skip, 跳过 %d, 跳过 %ds, 秒后跳过]
+08-21 19:32:06.520 17513 17513 I JumpAd  : 已跳过广告(关键词): pkg=com.greenpoint.android.mc10086.activity
