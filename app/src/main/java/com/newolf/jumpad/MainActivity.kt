@@ -10,8 +10,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +24,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.newolf.jumpad.data.AppInfo
+import com.newolf.jumpad.data.InstalledAppLoader
 import com.newolf.jumpad.data.RuleRepository
 import com.newolf.jumpad.service.AccessibilityUtil
 import com.newolf.jumpad.service.KeepAliveUtil
@@ -34,6 +37,8 @@ import com.newolf.jumpad.ui.MainScreen
 import com.newolf.jumpad.ui.SkipRecordScreen
 import com.newolf.jumpad.ui.UnmatchedRecordScreen
 import com.newolf.jumpad.ui.theme.JumpAdTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
 
@@ -102,6 +107,19 @@ private fun AppRoot(onRequestForeground: (Boolean) -> Unit) {
     var canDrawOverlays by remember { mutableStateOf(KeepAliveUtil.canDrawOverlays(context)) }
     var screen by remember { mutableStateOf<Screen>(Screen.Main) }
 
+    // 应用列表状态提升到此处,避免进入应用详情后返回时被销毁重建导致重新扫描加载与丢失滚动位置。
+    var installedApps by remember { mutableStateOf<List<AppInfo>?>(null) }
+    var appListQuery by remember { mutableStateOf("") }
+    val appListState = rememberLazyListState()
+    // 应用列表只在首次需要时加载一次,后续返回列表复用缓存。
+    LaunchedEffect(Unit) {
+        if (installedApps == null) {
+            installedApps = withContext(Dispatchers.IO) {
+                InstalledAppLoader.loadInstalledApps(context, includeSystem = true)
+            }
+        }
+    }
+
     // 每次界面回到前台时刷新无障碍服务与前台服务状态(用户可能刚从系统设置返回)。
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -160,7 +178,11 @@ private fun AppRoot(onRequestForeground: (Boolean) -> Unit) {
             onBack = { screen = Screen.Main },
             onAppClick = { app: AppInfo ->
                 screen = Screen.AppDetail(app.packageName, app.appName)
-            }
+            },
+            apps = installedApps,
+            query = appListQuery,
+            onQueryChange = { appListQuery = it },
+            listState = appListState
         )
 
         is Screen.AppDetail -> AppDetailScreen(

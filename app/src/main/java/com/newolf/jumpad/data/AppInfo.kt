@@ -39,17 +39,14 @@ object InstalledAppLoader {
     ): List<AppInfo> {
         val pm = context.packageManager
 
-        // 通过"桌面可启动"入口(ACTION_MAIN + CATEGORY_LAUNCHER)获取用户可见的应用。
-        // 相比 getInstalledApplications,这种方式天然只返回有启动图标、用户能打开的应用,
-        // 更符合列表页预期,且不会混入纯后台服务/无图标的包。
-        val launcherIntent = android.content.Intent(android.content.Intent.ACTION_MAIN).apply {
-            addCategory(android.content.Intent.CATEGORY_LAUNCHER)
-        }
-        val resolved = pm.queryIntentActivities(launcherIntent, 0)
+        // 列出设备上"全部已安装应用",而非仅"桌面可启动"的应用。
+        // 输入法(IME)、无障碍工具等没有 CATEGORY_LAUNCHER 启动图标的应用,
+        // 用 CATEGORY_LAUNCHER 查询会被漏掉;这里改用 getInstalledApplications 覆盖全部包,
+        // 以便用户能对输入法等无图标应用单独设置开屏广告扫描开关。
+        val installed = pm.getInstalledApplications(0)
 
-        return resolved.asSequence()
-            .mapNotNull { it.activityInfo?.applicationInfo }
-            // 按包名去重(部分应用有多个 Launcher 入口)。
+        return installed.asSequence()
+            // 按包名去重(保险起见)。
             .distinctBy { it.packageName }
             .filter { info ->
                 if (includeSystem) true
@@ -66,7 +63,8 @@ object InstalledAppLoader {
                     isSystem = info.isSystemApp()
                 )
             }
-            .sortedBy { it.appName.lowercase() }
+            // 先按类型(用户应用在前、系统应用在后),再按应用名排序,方便 UI 分组展示。
+            .sortedWith(compareBy({ it.isSystem }, { it.appName.lowercase() }))
             .toList()
     }
 

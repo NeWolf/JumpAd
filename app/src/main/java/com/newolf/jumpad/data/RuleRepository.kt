@@ -250,6 +250,38 @@ object RuleRepository {
         _skipRecords.value = empty
     }
 
+    /**
+     * 人工标记某条跳过记录的核对结论(跳对/跳错/清除),用 timestamp 作为唯一键。
+     *
+     * 标记"跳错(false)"时,将该记录的"包名|matchKey"加入黑名单,下次不再用这种方式跳;
+     * 标记"跳对(true)"或"清除(null)"时,将其从黑名单移除,恢复该方式。
+     */
+    fun setSkipCorrected(timestamp: Long, corrected: Boolean?) {
+        val list = _skipRecords.value.items.map {
+            if (it.timestamp == timestamp) it.copy(corrected = corrected) else it
+        }
+        val newRecords = SkipRecords(items = list)
+        persistRecords(newRecords)
+        _skipRecords.value = newRecords
+
+        // 联动黑名单:跳错入黑名单,跳对/清除出黑名单。
+        val target = list.firstOrNull { it.timestamp == timestamp } ?: return
+        val key = target.matchKey?.takeIf { it.isNotBlank() } ?: return
+        val entry = "${target.packageName}|$key"
+        val cfg = _config.value
+        val newBlacklist = if (corrected == false) cfg.skipBlacklist + entry
+        else cfg.skipBlacklist - entry
+        if (newBlacklist != cfg.skipBlacklist) {
+            update(cfg.copy(skipBlacklist = newBlacklist))
+        }
+    }
+
+    /** 供无障碍服务查询:某个"包名|matchKey"跳过方式是否已被标记跳错(在黑名单中)。 */
+    fun isSkipBlacklisted(packageName: String, matchKey: String): Boolean {
+        if (matchKey.isBlank()) return false
+        return _config.value.skipBlacklist.contains("$packageName|$matchKey")
+    }
+
     // ---------------- 未匹配记录(待适配) ----------------
 
     /** 从 MMKV 读取未匹配记录。 */

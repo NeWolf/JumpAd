@@ -37,6 +37,7 @@ data class SkipRule(
  * @param enabledPackages       用户显式"开启"跳过的包名集合(覆盖默认关闭,如手动开启的系统应用)
  * @param disabledPackages      用户显式"关闭"跳过的包名集合(覆盖默认开启,如手动关闭的用户应用)
  * @param imageSkipEnabled      图片跳过兜底开关:文字/规则均未命中时,尝试点击疑似"图片跳过按钮"(小图+角落)
+ * @param skipBlacklist         被人工标记为"跳错了"的方式黑名单,元素格式"包名|matchKey";命中则下次不再这样跳
  */
 @Serializable
 data class RuleConfig(
@@ -48,7 +49,8 @@ data class RuleConfig(
     val pixelKeepAliveEnabled: Boolean = false,
     val enabledPackages: Set<String> = emptySet(),
     val disabledPackages: Set<String> = emptySet(),
-    val imageSkipEnabled: Boolean = true
+    val imageSkipEnabled: Boolean = true,
+    val skipBlacklist: Set<String> = emptySet()
 )
 
 /**
@@ -58,13 +60,17 @@ data class RuleConfig(
  * @param appName     应用名称(用户可读,解析失败时回退为包名)
  * @param timestamp   跳过发生的时间戳(毫秒)
  * @param method      跳过方式描述(如"李跳跳规则"、"关键词匹配")
+ * @param matchKey    跳过方式的唯一标识(如"li:规则id"、"kw:命中文本"),用于"跳错后下次不这样跳"的黑名单匹配;可能为空
+ * @param corrected   人工核对结论:true=跳对了,false=跳错了,null=尚未核对
  */
 @Serializable
 data class SkipRecord(
     val packageName: String,
     val appName: String,
     val timestamp: Long,
-    val method: String
+    val method: String,
+    val matchKey: String? = null,
+    val corrected: Boolean? = null
 )
 
 /** 跳过记录集合的持久化容器。 */

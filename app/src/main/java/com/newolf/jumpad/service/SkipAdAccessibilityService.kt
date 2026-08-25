@@ -72,6 +72,19 @@ class SkipAdAccessibilityService : AccessibilityService() {
         /** 图片兜底:候选控件单边最大占屏比(单边过大也排除)。 */
         private const val IMG_MAX_SIDE_RATIO = 0.5
 
+        /**
+         * 图片兜底·广告页特征:近全屏控件的最小面积占屏比。
+         * 开屏广告页通常有一张全屏广告图/视频,面积接近整屏;据此区分普通页面(无全屏图)。
+         */
+        private const val AD_FULLSCREEN_MIN_RATIO = 0.6
+
+        /**
+         * 图片兜底·广告页特征:页面可点击对象数量的上限(仅统计可见且落在屏幕内的可点击控件)。
+         * 主判据是"存在近全屏广告图/视频";该数量上限只作兜底防护,排除"无全屏图却按钮众多"的普通页面。
+         * 实测百度网盘广告页可见可点击数约 19(广告图整体可点击 + 多个推广/装饰元素),故放宽到 25。
+         */
+        private const val AD_MAX_CLICKABLE = 25
+
         @Volatile
         var isRunning: Boolean = false
             private set
@@ -203,8 +216,39 @@ class SkipAdAccessibilityService : AccessibilityService() {
 
         // 窗口切换事件的 className 有时是控件类名(android.widget.FrameLayout)或 Fragment,
         // 并非真正的 Activity。这类事件不参与会话切换判定,避免打断正在进行的扫描窗口。
+        //
+        // 但部分开屏广告(如百度网盘)以 FrameLayout 等控件类型的独立覆盖窗口弹出,
+        // 全程不产生真正的 Activity 级 WINDOW_STATE_CHANGED,若在此直接 return 会导致:
+        //  1) 已有会话时,不维持 splashPackage,后续可能被误结束;
+        //  2) 无会话时(首个事件即广告覆盖窗口),会话永远开不起来,handleWindow 被守卫拦下。
+        // 因此对非 Activity 事件做兜底:维持已有会话 / 为疑似广告覆盖窗口开启一次轻量扫描会话。
         if (className != null && !LauncherActivityResolver.isActivity(this, packageName, className)) {
-            Log.d(TAG, "忽略非 Activity 事件: pkg=$packageName, class=$className")
+            val now = System.currentTimeMillis()
+            when {
+                // 该应用已有活跃扫描会话且未超时:维持会话,交由 handleWindow 扫描此覆盖窗口。
+                splashPackage == packageName && now - splashWindowStart < SPLASH_WINDOW_MS -> {
+                    Log.d(TAG, "非 Activity 覆盖窗口(会话内): pkg=$packageName, class=$className,维持扫描")
+                }
+                // 无活跃会话(或会话已超时):控件级独立覆盖窗口是开屏广告的强信号。
+                // 百度网盘等广告常在启动 5s 后才弹覆盖窗口,此时初始 Activity 会话早已超时并被加入
+                // finishedPackages;若因此拒绝,覆盖窗口广告将永远处理不到。故此处不受 finishedPackages 限制,
+                // 重开一次会话让 handleWindow 扫描;是否点击由关键词/图片兜底的特征校验决定,避免误触普通界面。
+                // 用 SPLASH_WINDOW_MS 作为重开间隔的天然节流,防止每秒多条 FrameLayout 事件反复重置窗口。
+                splashPackage != packageName || now - splashWindowStart >= SPLASH_WINDOW_MS -> {
+                    finishedPackages.remove(packageName)
+               splashPackage = packageName
+                    splashWindowStart = now
+                    matchedInSession = false
+                    if (sessionLauncherActivity == null) {
+                        sessionLauncherActivity = LauncherActivityResolver.launcherActivityOf(this, packageName)
+                    }
+                    Log.d(TAG, "非 Activity 覆盖窗口开启扫描会话: pkg=$packageName, class=$className")
+                }
+                else -> {
+                    Log.d(TAG, "忽略非 Activity 事件: pkg=$packageName, class=$className")
+                }
+            }
+            lastPackage = packageName
             return
         }
 
@@ -322,14 +366,16 @@ class SkipAdAccessibilityService : AccessibilityService() {
         val root = rootInActiveWindow ?: return
         try {
             // 1) 优先应用李跳跳规则(id 触发 + action 执行)。
+            //    过滤掉被人工标记"跳错了"的规则(黑名单),下次不再用这种方式跳。
             val liRules = RuleRepository.liTiaoTiaoRules()
+                .filter { !RuleRepository.isSkipBlacklisted(packageName, "li:${it.id}") }
             if (liRules.isNotEmpty()) {
                 val hit = engine?.apply(root, liRules)
                 if (hit != null) {
                     lastClickTime = now
                     lastPackage = packageName
                     RuleRepository.incrementSkipCount()
-                    recordSkip(packageName, "李跳跳规则")
+                    recordSkip(packageName, "李跳跳规则", "li:${hit.id}")
                     matchedInSession = true
                     finishedPackages.add(packageName)
                     splashPackage = null
@@ -343,18 +389,40 @@ class SkipAdAccessibilityService : AccessibilityService() {
             val keywords = collectKeywords(packageName, config)
             if (keywords.isEmpty()) return
             Log.d(TAG, "李跳跳规则未命中,回退关键词匹配: pkg=$packageName, keywords=$keywords")
-            val target = findSkipNode(root, keywords, 0)
+            // 部分开屏广告以独立覆盖窗口弹出,rootInActiveWindow 拿到的可能是其下的主界面。
+            // 因此在活动窗口未命中时,继续遍历该包名的其它窗口(含广告覆盖窗口)寻找跳过按钮。
+            var target = findSkipNode(root, keywords, 0)
+            if (target == null) {
+                val extraRoots = collectWindowRoots(packageName).filter { it !== root }
+                try {
+                    for (r in extraRoots) {
+                        target = findSkipNode(r, keywords, 0)
+                        if (target != null) break
+                    }
+                } finally {
+                    extraRoots.forEach { it.recycle() }
+                }
+            }
             if (target != null) {
+                // 以命中控件的文案作为该跳过方式的标识;若已被标记"跳错了"则本次不点。
+                val hitText = (target.text?.toString() ?: target.contentDescription?.toString())
+                    ?.trim().orEmpty()
+                val matchKey = "kw:$hitText"
+                if (hitText.isNotBlank() && RuleRepository.isSkipBlacklisted(packageName, matchKey)) {
+                    Log.i(TAG, "关键词命中控件已被标记跳错,跳过本次点击: pkg=$packageName, text=$hitText")
+                    target.recycle()
+                    return
+                }
                 val clicked = performClickOnNode(target)
                 if (clicked) {
                     lastClickTime = now
                     lastPackage = packageName
                     RuleRepository.incrementSkipCount()
-                    recordSkip(packageName, "关键词匹配")
+                    recordSkip(packageName, "关键词匹配", matchKey.takeIf { hitText.isNotBlank() })
                     matchedInSession = true
                     finishedPackages.add(packageName)
                     splashPackage = null
-                    Log.i(TAG, "已跳过广告(关键词): pkg=$packageName")
+                    Log.i(TAG, "已跳过广告(关键词): pkg=$packageName, text=$hitText")
                     showSkipToast("已跳过广告", config)
                 }
                 target.recycle()
@@ -371,13 +439,14 @@ class SkipAdAccessibilityService : AccessibilityService() {
     }.getOrDefault(packageName)
 
     /** 记录一条跳过明细。 */
-    private fun recordSkip(packageName: String, method: String) {
+    private fun recordSkip(packageName: String, method: String, matchKey: String? = null) {
         RuleRepository.addSkipRecord(
             SkipRecord(
                 packageName = packageName,
                 appName = resolveAppName(packageName),
                 timestamp = System.currentTimeMillis(),
-                method = method
+                method = method,
+                matchKey = matchKey
             )
         )
     }
@@ -518,16 +587,79 @@ class SkipAdAccessibilityService : AccessibilityService() {
      *
      * @return 是否成功点击了某个疑似跳过按钮
      */
+    /**
+     * 收集属于目标包名的所有窗口根节点(含开屏广告的覆盖/子窗口)。
+     *
+     * 背景:部分开屏广告(如百度网盘京东品牌广告)以独立的覆盖窗口弹出,
+     * 系统的 rootInActiveWindow 只返回\"活动窗口\"(往往是其下的主 Activity),
+     * 导致 uiautomator dump 与 rootInActiveWindow 都拿不到广告页,跳过按钮自然收集不到。
+     * 通过 getWindows() 遍历所有窗口,取属于该包名的窗口根,即可覆盖这类覆盖窗口。
+     *
+     * 返回的节点由调用方负责 recycle;若 getWindows 不可用则回退到 rootInActiveWindow。
+     */
+    private fun collectWindowRoots(packageName: String): List<AccessibilityNodeInfo> {
+        val roots = ArrayList<AccessibilityNodeInfo>()
+        val wins = runCatching { windows }.getOrNull()
+        if (wins != null && wins.isNotEmpty()) {
+            for (w in wins) {
+                val r = runCatching { w.root }.getOrNull() ?: continue
+                if (r.packageName?.toString() == packageName) {
+                    roots.add(r)
+                } else {
+                    r.recycle()
+                }
+            }
+        }
+        if (roots.isEmpty()) {
+            rootInActiveWindow?.let { roots.add(it) }
+        }
+        return roots
+    }
+
     private fun tryImageSkip(packageName: String, activity: String?): Boolean {
-        val root = rootInActiveWindow ?: return false
+        val roots = collectWindowRoots(packageName)
+        if (roots.isEmpty()) return false
+        Log.d(TAG, "图片兜底诊断:窗口根节点数=${roots.size} pkg=$packageName")
+        try {
+            for (root in roots) {
+                if (tryImageSkipOnRoot(packageName, activity, root)) return true
+            }
+            return false
+        } finally {
+            roots.forEach { it.recycle() }
+        }
+    }
+
+    /** 在单个窗口根节点上执行图片兜底(候选收集 + 特征校验 + 打分点击)。 */
+    private fun tryImageSkipOnRoot(packageName: String, activity: String?, root: AccessibilityNodeInfo): Boolean {
         val screen = Rect().also { root.getBoundsInScreen(it) }
         val screenW = if (screen.width() > 0) screen.width() else resources.displayMetrics.widthPixels
         val screenH = if (screen.height() > 0) screen.height() else resources.displayMetrics.heightPixels
         val candidates = ArrayList<ImageCandidate>()
         try {
             collectImageCandidates(root, screenW, screenH, 0, candidates)
+            // 诊断日志:输出候选总数及每个候选的关键特征,便于广告页出现时一次性定位失败原因。
+            Log.d(
+                TAG,
+                "图片兜底诊断:pkg=$packageName, activity=$activity, screen=${screenW}x$screenH, 候选数=${candidates.size}"
+            )
+            candidates.forEachIndexed { i, c ->
+                Log.d(TAG, "图片兜底诊断:候选[$i] class=${c.className}, bounds=${c.bounds}, desc=${c.desc}, score=${c.score}")
+            }
             if (candidates.isEmpty()) {
                 Log.d(TAG, "图片兜底:未找到可点击图片候选 pkg=$packageName")
+                return false
+            }
+            // 广告页特征校验:真正的开屏广告页通常有"一个全屏控件(广告图/视频) + 少量可点击对象"。
+            // 无广告的普通页面(主界面/列表页)没有全屏广告图、可点击对象很多。
+            // 不符合广告页特征则放弃,避免对没有广告的应用乱点。
+            val feature = detectAdPageFeature(root, screenW, screenH)
+            Log.d(TAG, "图片兜底诊断:广告页特征 fullscreen=${feature.hasFullscreen}, clickable=${feature.clickableCount}, 阈值=$AD_MAX_CLICKABLE")
+            if (!feature.hasFullscreen || feature.clickableCount > AD_MAX_CLICKABLE) {
+                Log.d(
+                    TAG,
+                    "图片兜底:页面不像广告页,放弃点击 pkg=$packageName, fullscreen=${feature.hasFullscreen}, clickable=${feature.clickableCount}"
+                )
                 return false
             }
             // 结合历史人工标记做修正:点错过的位置直接排除,点对过的位置强力加分优先。
@@ -561,8 +693,8 @@ class SkipAdAccessibilityService : AccessibilityService() {
             }
             return clicked
         } finally {
+            // root 由 tryImageSkip 外层统一 recycle,此处只回收候选节点。
             candidates.forEach { if (it.node !== root) it.node.recycle() }
-            root.recycle()
         }
     }
 
@@ -611,6 +743,24 @@ class SkipAdAccessibilityService : AccessibilityService() {
                         score = scoreCandidate(r, desc, cls, screenW, screenH)
                     )
                 )
+            } else {
+                // 诊断:图片类+可点击但被尺寸/面积过滤的节点(可能是被误滤的真跳过按钮)。
+                Log.d(
+                    TAG,
+                    "图片兜底诊断:滤除候选 class=$cls, bounds=$r, desc=$desc, sideOk=$sideOk, areaRatio=${"%.3f".format(areaRatio)}"
+                )
+            }
+        }
+        // 诊断:任何 desc/text 含跳过关键词的节点都记录,便于发现\"真跳过按钮不满足 isImageLike/clickable\"的情况。
+        run {
+            val text = node.text?.toString()
+            val kw = "跳过|skip|关闭|close|跳过广告".toRegex(RegexOption.IGNORE_CASE)
+            if ((desc != null && kw.containsMatchIn(desc)) || (text != null && kw.containsMatchIn(text))) {
+                val r = Rect().also { node.getBoundsInScreen(it) }
+                Log.d(
+                    TAG,
+                    "图片兜底诊断:关键词节点 class=$cls, bounds=$r, desc=$desc, text=$text, clickable=${node.isClickable}, imageLike=$isImageLike"
+                )
             }
         }
         for (i in 0 until node.childCount) {
@@ -618,6 +768,51 @@ class SkipAdAccessibilityService : AccessibilityService() {
             collectImageCandidates(child, screenW, screenH, depth + 1, out)
             child.recycle()
         }
+    }
+
+    /** 广告页特征统计结果。 */
+    private data class AdPageFeature(val hasFullscreen: Boolean, val clickableCount: Int)
+
+    /**
+     * 扫描页面判断是否具备"开屏广告页"特征:
+     *  - hasFullscreen:存在近全屏控件(面积占屏 >= AD_FULLSCREEN_MIN_RATIO 的 Image/View/Video/WebView),即广告本体;
+     *  - clickableCount:整页可点击对象总数(用于排除交互元素众多的普通主界面/列表页)。
+     * 二者结合可区分"有广告的启动页"与"无广告的普通页面",避免对无广告应用乱点。
+     */
+    private fun detectAdPageFeature(root: AccessibilityNodeInfo, screenW: Int, screenH: Int): AdPageFeature {
+        var hasFullscreen = false
+        var clickableCount = 0
+        val screenArea = screenW.toDouble() * screenH
+
+        fun dfs(node: AccessibilityNodeInfo?, depth: Int) {
+            if (node == null || depth > MAX_DEPTH) return
+            // 只统计"可见且落在屏幕内"的可点击对象:节点树里含大量屏幕外/被遮挡/隐藏的可点击控件,
+            // 若全部计入会严重高估(如百度网盘广告页曾统计到 67 个),导致误判为普通页面。
+            if (node.isClickable && node.isVisibleToUser) {
+                val cr = Rect().also { node.getBoundsInScreen(it) }
+                val onScreen = cr.width() > 0 && cr.height() > 0 &&
+                    cr.right > 0 && cr.bottom > 0 &&
+                    cr.left < screenW && cr.top < screenH
+                if (onScreen) clickableCount++
+            }
+            val cls = node.className?.toString()
+            val isVisualLike = cls != null &&
+                (cls.contains("Image", true) || cls.contains("View", true) ||
+                    cls.contains("Video", true) || cls.contains("Surface", true) ||
+                    cls.contains("WebView", true))
+            if (isVisualLike && screenArea > 0) {
+                val r = Rect().also { node.getBoundsInScreen(it) }
+                val ratio = (r.width().toDouble() * r.height()) / screenArea
+                if (ratio >= AD_FULLSCREEN_MIN_RATIO) hasFullscreen = true
+            }
+            for (i in 0 until node.childCount) {
+                val child = node.getChild(i) ?: continue
+                dfs(child, depth + 1)
+                child.recycle()
+            }
+        }
+        dfs(root, 0)
+        return AdPageFeature(hasFullscreen, clickableCount)
     }
 
     /** 对候选控件启发式打分。 */

@@ -1,18 +1,15 @@
 ---
 name: 图片型跳过按钮兜底功能
-description: JumpAd 针对百度网盘/一刻相册等图片跳过按钮的启发式兜底方案与后续待办
+description: JumpAd 图片跳过兜底、多窗口根节点与 FrameLayout 覆盖窗口会话根因修复及排查线索
 type: project
 ---
 
-针对"跳过按钮做成图片、无法用文字判断"的场景，采用纯启发式兜底点击 + 截图 + 记录方案（完全离线）。
+针对"跳过按钮为图片、无法用文字判断"的场景,纯启发式兜底点击+截图+记录(完全离线)。
 
-**Why:** 无障碍 API 只能拿 className/bounds/clickable/contentDescription，拿不到图片像素，无法做图像识别，只能启发式猜测。用户明确选择"小图+角落位置+可点击就点击，并记录+截图供人工核对"。
+**图片兜底:** finishSession(5s 超时且文字/李跳跳未命中)触发 tryImageSkip;打分角落+3/小+2/desc含跳过skip关闭+4/含Image+1,score<=0 放弃,排除面积>0.15、单边>屏0.5、边长<24px;detectAdPageFeature 需近全屏控件(>=0.6)且可点击<=25 防误点;corrected 点错入黑名单、点对入白名单。
 
-**How to apply:**
-- 触发时机：finishSession（5s 窗口超时且文字/李跳跳规则均未命中）时先尝试 tryImageSkip，成功则计数+记录，否则 recordUnmatched。
-- 打分维度：屏幕角落(右上/右下+3)、尺寸小(面积占屏<0.05+2)、描述含跳过/skip/关闭+4、className含Image+1；score<=0 放弃点击（保守，可能漏点，需真机调参）。
-- 排除：面积占屏>0.15、单边>屏0.5、边长<24px。
-- 截图：API30+ takeScreenshot→Bitmap.wrapHardwareBuffer→存 filesDir/image_skip_shots（takeScreenshot 有约每秒1次频率限制，已用 runCatching 兜底）。
-- ImageSkipRecord.corrected 字段(点对/点错/未核对)已接入修正闭环：点错过的 bounds 加黑名单(排除)、点对过的 bounds 加白名单(得分+100 优先点击)，用 boundsKey(Rect→"l,t,r,b") 比对。
+**根因一 多窗口根节点(已修复):** 广告独立覆盖窗口弹出,rootInActiveWindow 只返回活动窗口→漏点。修复:collectWindowRoots(pkg) 用 getWindows() 遍历该包所有窗口根;handleWindow/tryImageSkip 逐窗口尝试。
 
-**已完成 UI：** ①ImageSkipRecordScreen 记录查看界面(截图预览+bounds+score+点对/点错/清除标记)；②MainScreen 加"图片兜底记录"入口卡片 + GlobalSwitchCard 加"图片跳过兜底"开关；③清空记录入口(TopAppBar)。RuleRepository.setImageSkipCorrected(timestamp, corrected) 以 timestamp 为唯一键写入。
+**根因二 FrameLayout 覆盖窗口会话(已修复):** 百度网盘广告以控件级 FrameLayout 覆盖窗口弹出、无 Activity 事件→旧 updateSplashPhase 非 Activity 事件直接 return,会话开不起来,handleWindow 被 packageName!=splashPackage 守卫拦下(日志仅"忽略非 Activity 事件");广告常 5s 后弹、初始会话已进 finishedPackages。修复(非 Activity 分支):会话内维持;否则不受 finishedPackages 限制、remove 后重开,靠 SPLASH_WINDOW_MS 节流,点击仍由特征校验把关。
+
+**验证:** 必须 `am start -n com.baidu.netdisk/.ui.DefaultMainActivity`(monkey 无效);见"非 Activity 覆盖窗口开启扫描会话"后多次"已跳过广告",普通界面未误触。广告概率下发需多次冷启动。
