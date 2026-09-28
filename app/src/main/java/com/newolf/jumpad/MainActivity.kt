@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -38,6 +39,7 @@ import com.newolf.jumpad.ui.SkipRecordScreen
 import com.newolf.jumpad.ui.UnmatchedRecordScreen
 import com.newolf.jumpad.ui.theme.JumpAdTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
@@ -98,6 +100,7 @@ private sealed interface Screen {
 private fun AppRoot(onRequestForeground: (Boolean) -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
     val config by RuleRepository.config.collectAsStateWithLifecycle()
     val liTiaoTiaoCount by RuleRepository.liTiaoTiaoCount.collectAsStateWithLifecycle()
 
@@ -128,6 +131,13 @@ private fun AppRoot(onRequestForeground: (Boolean) -> Unit) {
                 foregroundEnabled = SkipForegroundService.isRunning
                 ignoringBatteryOpt = KeepAliveUtil.isIgnoringBatteryOptimizations(context)
                 canDrawOverlays = KeepAliveUtil.canDrawOverlays(context)
+                // 回到前台时后台重新扫描已安装应用,使新装/卸载的应用及时反映到列表(旧列表继续展示直到刷新完成)。
+                scope.launch {
+                    val latest = withContext(Dispatchers.IO) {
+                        InstalledAppLoader.loadInstalledApps(context, includeSystem = true)
+                    }
+                    if (latest != installedApps) installedApps = latest
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

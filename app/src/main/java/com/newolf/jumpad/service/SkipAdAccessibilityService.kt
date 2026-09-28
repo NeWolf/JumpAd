@@ -259,17 +259,39 @@ class SkipAdAccessibilityService : AccessibilityService() {
         val now = System.currentTimeMillis()
 
         if (packageName != lastPackage) {
-            // 发生应用切换:上一个应用会话结束;为新应用开启一次扫描窗口。
-            //清除新应用的"已结束"标记,使其重新开始一轮扫描。
-            finishedPackages.remove(packageName)
-            splashPackage = packageName
-            splashWindowStart = now
-            splashActivity = className
-            matchedInSession = false
-            // 记录该应用的启动入口 Activity(桌面图标进入的第一个界面),作为图片兜底"启动页"基准。
-            sessionLauncherActivity = LauncherActivityResolver.launcherActivityOf(this, packageName)
-            activityHopCount = 0
-            Log.d(TAG, "开启启动页扫描窗口: pkg=$packageName, activity=$className, launcher=$sessionLauncherActivity")
+            // 发生应用切换:需要区分"冷启动"与"进程间切换(温启动)"。
+            //
+            // 开屏广告只在冷启动(此前进程不存在、从桌面图标全新拉起)时出现;
+            // 而在已存在的进程间切换(任务切换 / 从后台切回)时,系统恢复的是上次停留的 Activity,
+            // 并不会重新展示开屏广告。若此时也开启扫描,会在普通界面误扫描甚至误点"跳过"式按钮。
+            //
+            // 判定依据:冷启动总是从应用的启动入口 Activity(getLaunchIntentForPackage 的目标,
+            // 即点击桌面图标进入的第一个界面)开始;进程间切换恢复的通常不是该入口页。
+            // 因此仅当本次切换的首个前台 Activity == 启动入口 Activity 时才视为冷启动、开启扫描会话。
+            // 无法解析入口(launcher 为 null,如输入法等无启动图标应用)或 className 为空时,
+            // 退化为原有行为(照常开启),避免漏扫。
+            val launcher = LauncherActivityResolver.launcherActivityOf(this, packageName)
+            val isColdStart = launcher == null || className == null || className == launcher
+            if (isColdStart) {
+                //清除新应用的"已结束"标记,使其重新开始一轮扫描。
+                finishedPackages.remove(packageName)
+                splashPackage = packageName
+                splashWindowStart = now
+                splashActivity = className
+                matchedInSession = false
+                // 记录该应用的启动入口 Activity,作为图片兜底"启动页"基准。
+                sessionLauncherActivity = launcher
+                activityHopCount = 0
+                Log.d(TAG, "开启启动页扫描窗口(冷启动): pkg=$packageName, activity=$className, launcher=$launcher")
+            } else {
+                // 进程间切换(温启动):不开启扫描会话,避免在普通界面误扫描/误点。
+                splashPackage = null
+                splashActivity = null
+                currentActivity = className
+                sessionLauncherActivity = null
+                activityHopCount = 0
+                Log.d(TAG, "检测到进程间切换(非冷启动),跳过开屏扫描: pkg=$packageName, activity=$className, launcher=$launcher")
+            }
         } else {
             // 同一应用内的 Activity 切换:累加跳转层数(仅当 Activity 名确实变化时)。
             if (className != null && className != currentActivityBefore) {
